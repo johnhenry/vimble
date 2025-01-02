@@ -93,11 +93,7 @@ const Script = class {
         let module;
         try {
             module = await import(
-                URL.createObjectURL(
-                new Blob([fullBody], {
-                    type: "application/javascript",
-                })
-                )
+                'data:application/javascript,' + encodeURIComponent(fullBody)
             );
         } catch (error) {
             console.error(error);
@@ -106,7 +102,6 @@ const Script = class {
         }
         return await module.default(context);
     }
-
     /**
      * Runs the script in the current global context
      * @param {Object} _options - Execution options (currently unused)

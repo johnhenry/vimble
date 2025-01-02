@@ -22,7 +22,7 @@
     }
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules --test test/index.test.mjs",
     "demo:node": "node --experimental-vm-modules demo.node.mjs"
   },
   "author": "",
