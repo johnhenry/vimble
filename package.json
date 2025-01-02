@@ -8,22 +8,14 @@
       "types": "./types/types.d.ts",
       "default": "./src/index.mjs"
     },
-    "./inject-console": {
+    "./injected-console": {
       "types": "./types/types.d.ts",
       "default": "./src/injected-console.mjs"
-    },
-    "./create-run": {
-      "types": "./types/types.d.ts",
-      "default": "./src/create-run.mjs"
-    },
-    "./wrap-async": {
-      "types": "./types/types.d.ts",
-      "default": "./src/wrap-async.mjs"
     }
   },
   "scripts": {
     "test": "node --experimental-vm-modules --test test/index.test.mjs",
-    "demo:node": "node --experimental-vm-modules demo.node.mjs"
+    "demo": "node demo.mjs"
   },
   "author": "",
   "license": "ISC",
