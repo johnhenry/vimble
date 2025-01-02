@@ -14,15 +14,20 @@ const InjectedConsole = class {
 
   /** @type {string[]} Array to store standard output messages */
   #output = [];
+  get output(){
+    return this.#output.map(messages => messages.join(" ")).join("\n");
+  }
   /** @type {string[]} Array to store error messages */
   #errors = [];
-
+  get errors(){
+    return this.#errors.map(messages => messages.join(" ")).join("\n");
+  }
   /**
    * Logs a message to the output buffer
    * @param {...any} output - Items to log
    */
   log(...output){
-    this.#errors.push(output);
+    this.#output.push(output);
   }
 
   /**
@@ -46,7 +51,7 @@ const InjectedConsole = class {
    * @param {...any} output - Items to log as error
    */
   error(...output){
-    this.#errors.push(output.join(" "));
+    this.#errors.push(output);
   }
   /**
    * Resets output and error buffers
@@ -61,9 +66,9 @@ const InjectedConsole = class {
    */
   get result(){
     if(this.#errors.length > 0){
-      return this.#errors.map(messages => messages.join(" ")).join("\n");
+      return this.errors;
     }
-    return this.#output.map(messages => messages.join(" ")).join("\n");
+    return this.output;
   }
   /**
    * Gets information about console including error and output counts
@@ -71,7 +76,7 @@ const InjectedConsole = class {
    */
   get info(){
     return {
-      errors: this.#errors.lengt,
+      errors: this.#errors.length,
       output: this.#output.length
     }
   }
