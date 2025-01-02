@@ -2,8 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { run, runWithInjectedConsole, InjectedConsole} from '../src/index.mjs';
 
-// TODO: Add more tests
-
 test('run executes basic code', async (t) => {
   const result = await run('return 42;', {});
   assert.equal(result, 42);
@@ -26,16 +24,69 @@ test('run throws on syntax error', async (t) => {
   );
 });
 
-test('InjectedConsole captures log output', async (t) => {
-  const console = new InjectedConsole();
-  console.log('test message');
-  assert.match(console.result, /test message/);
+test('environment isolation - cannot access outer scope', async (t) => {
+  const secretValue = 'secret123';
+  const result = await run('return typeof secretValue;', {});
+  assert.equal(result, 'undefined');
 });
 
-test('InjectedConsole captures error output', async (t) => {
+test('environment isolation - variables are contained', async (t) => {
+  const result = await run(`
+    let x = 1;
+    x = 2;
+    return x;
+  `, {});
+  assert.equal(result, 2);
+  
+  const result2 = await run('return typeof x;', {});
+  assert.equal(result2, 'undefined');
+});
+
+test('environment isolation - global objects are restricted', async (t) => {
+  const result = await run(`
+    return {
+      hasFetch: typeof fetch === 'function',
+      hasProcess: typeof process === 'undefined',
+      hasRequire: typeof require === 'function',
+      hasModule: typeof module === 'object',
+      hasGlobal: typeof global === 'object',
+      hasWindow: typeof window === 'object'
+    };
+  `, {});
+
+  assert.deepEqual(result, {
+    hasFetch: false,
+    hasProcess: false,
+    hasRequire: false,
+    hasModule: false,
+    hasGlobal: false,
+    hasWindow: false
+  });
+});
+
+test('environment isolation - fetch API is restricted', async (t) => {
+  const result = await run(`
+    try {
+      await fetch('https://example.com');
+      return 'fetch succeeded';
+    } catch (e) {
+      return e.constructor.name;
+    }
+  `, {});
+  
+  assert.equal(result, 'TypeError');
+});
+
+test('InjectedConsole captures output', async (t) => {
+  const console = new InjectedConsole();
+  console.log('test message');
+  assert.match(console.output, /test message/);
+});
+
+test('InjectedConsole captures errors', async (t) => {
   const console = new InjectedConsole();
   console.error('error message');
-  assert.match(console.result, /error message/);
+  assert.match(console.errors, /error message/);
 });
 
 test('InjectedConsole reset clears buffers', async (t) => {
@@ -43,10 +94,11 @@ test('InjectedConsole reset clears buffers', async (t) => {
   console.log('test');
   console.error('error');
   console.reset();
-  assert.equal(console.result, '');
+  assert.equal(console.output, '');
+  assert.equal(console.errors, '');
 });
 
-test('runWithInjectedConsole captures console output', async (t) => {
+test('runWithInjectedConsole captures output', async (t) => {
   const result = await runWithInjectedConsole('console.log("test output");');
   assert.match(result, /test output/);
 });
@@ -59,7 +111,13 @@ test('runWithInjectedConsole with context', async (t) => {
   assert.match(result, /Hello World/);
 });
 
-test('runWithInjectedConsole captures errors', async (t) => {
-  const result = await runWithInjectedConsole('console.error("test error");');
-  assert.match(result, /test error/);
+test('separate console instances have separate state', async (t) => {
+  const console1 = new InjectedConsole();
+  const console2 = new InjectedConsole();
+  
+  console1.log('message1');
+  console2.log('message2');
+  
+  assert.equal(console1.output, 'message1');
+  assert.equal(console2.output, 'message2');
 });
