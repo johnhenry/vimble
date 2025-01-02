@@ -1,5 +1,5 @@
 /**
- * @module vmb/src/create-run
+ * @module vimble/src/create-run
  * @description Factory functions for creating script and module runners with isolated contexts
  */
 

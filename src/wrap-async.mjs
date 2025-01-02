@@ -1,5 +1,5 @@
 /**
- * @module vmb/src/wrap-async
+ * @module vimble/src/wrap-async
  * @description Utility for wrapping code in an async IIFE (Immediately Invoked Function Expression)
  */
 

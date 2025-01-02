@@ -1,5 +1,5 @@
 /**
- * @module vmb/src/index
+ * @module vimble/src/index
  * @description Core module providing context creation and script execution functionality
  */
 

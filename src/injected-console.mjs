@@ -1,5 +1,5 @@
 /**
- * @module vmb/src/injected-console
+ * @module vimble/src/injected-console
  * @description Provides a custom console implementation for capturing output in isolated contexts
  */
 
