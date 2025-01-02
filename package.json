@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "test": "node --experimental-vm-modules --test test/index.test.mjs",
+    "test": "node --test test/index.test.mjs",
     "demo": "node demo.mjs"
   },
   "author": "",

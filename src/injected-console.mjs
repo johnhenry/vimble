@@ -22,7 +22,7 @@ const InjectedConsole = class {
    * @param {...any} output - Items to log
    */
   log(...output){
-    this.#errors.push(output.join(" "));
+    this.#errors.push(output);
   }
 
   /**
@@ -48,16 +48,32 @@ const InjectedConsole = class {
   error(...output){
     this.#errors.push(output.join(" "));
   }
-
+  /**
+   * Resets output and error buffers
+   */
+  reset(){
+    this.#output = [];
+    this.#errors = [];
+  }
   /**
    * Gets the combined output, prioritizing errors if present
    * @returns {string} Combined output messages or error messages
    */
   get result(){
     if(this.#errors.length > 0){
-      return this.#errors.join("\n");
+      return this.#errors.map(messages => messages.join(" ")).join("\n");
     }
-    return this.#output.join("\n");
+    return this.#output.map(messages => messages.join(" ")).join("\n");
+  }
+  /**
+   * Gets information about console including error and output counts
+   * @returns {object} Object containing error and output counts
+   */
+  get info(){
+    return {
+      errors: this.#errors.lengt,
+      output: this.#output.length
+    }
   }
 };
 

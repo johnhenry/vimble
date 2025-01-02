@@ -1,3 +1,8 @@
+/**
+ * @module vimble/src/index
+ * @description Core module providing functionality to execute code in isolated contexts
+ */
+
 import { InjectedConsole } from "./injected-console.mjs"
 /** @type {string[]} Keys to remove from the global context */
 const REMOVE_KEYS = ['0'];
@@ -27,6 +32,14 @@ const trailer = `
 };
 `;
 
+/**
+ * Executes JavaScript code in an isolated context with specified global variables
+ * @async
+ * @param {string} code - The JavaScript code to execute
+ * @param {Object} context - Object containing global variables to inject into the execution context
+ * @returns {Promise<any>} Result of the executed code
+ * @throws {Error} If code execution fails
+ */
 const run = async (code, context) => {
     const newContext = {
         ...EMPTY_CONTEXT,
@@ -43,7 +56,15 @@ const run = async (code, context) => {
         throw error;
     }
 }
-const runWithConsoleOutput = async (code, context) => {
+/**
+ * Executes JavaScript code with a custom console implementation and returns the console output
+ * @async
+ * @param {string} code - The JavaScript code to execute
+ * @param {Object} [context={}] - Additional context variables to inject into the execution environment
+ * @returns {Promise<string>} Console output from the code execution
+ * @throws {Error} If code execution fails
+ */
+const runWithInjectedConsole = async (code, context) => {
     const localConsole = new InjectedConsole();
     await run (code, {
         ...context,
@@ -51,5 +72,5 @@ const runWithConsoleOutput = async (code, context) => {
     });
     return localConsole.result;
 }
-export { run, runWithConsoleOutput, InjectedConsole };
+export { run, runWithInjectedConsole, InjectedConsole };
 export default run;
