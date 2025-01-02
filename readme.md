@@ -1,7 +1,7 @@
 # VMB
 
 VMB leverages a _subset of_ [node's vm api](https://nodejs.org/api/vm.html),
-to run browser code in sandboxed ennvironments.
+to run code in a sandboxed environment in the browser.
 
 ```javascript
 import vmb from 'https://cdn.jsdelivr.net/npm/vmb@0.0.0/src/index.mjs';
@@ -14,7 +14,7 @@ Or install via npm
 npm install vmb
 ```
 
-## Usage Examples: Script
+## Usage Example: Script
 
 The following example uses `Script` to run synchronous code.
 
@@ -27,7 +27,7 @@ const code = 'console.log(1 + 2);';
 const GLOBALS = {};
 const context = createContext({...GLOBALS, console: new InjectedConsole()});
 // Create a new script
-const script = new Script(CODE);
+const script = new Script(code);
 // Run the script in the context
 await script.runInContext(context);
 return context.console?.result; // logs "3"
@@ -44,13 +44,13 @@ const code = 'console.log(1 + 2);';
 const GLOBALS = {};
 const context = createContext({...GLOBALS, console: new InjectedConsole()});
 // Create a new script
-const script = new Script(CODE);
+const script = new Script(code);
 // Run the script in the context
 await script.runInContext(context);
 return context.console?.result;
 ```
 
-## Usage Examples : SourceTextModule
+## Usage Example : SourceTextModule
 
 The following example uses `SourceTextModule` to run asynchronous code.
 
@@ -89,25 +89,145 @@ return context.console?.result;
 
 ## API
 
-### constants
+Compare to https://nodejs.org/api/vm.html.
 
-Constants avaliable for use with
+### Constants
 
-- `constatns.DONT_CONTEXTIFY` - don't contextify
+The following constants are available for use:
 
+- `constants.DONT_CONTEXTIFY` - A symbol that indicates the context should not be modified when creating a new execution context. Used with `createContext`.
 
-### Script
+### Core API
 
-### SourceTextModule
+#### createContext(context)
 
-### createContext
+Creates a new execution context for running scripts and modules.
 
-### Utilities
+**Parameters:**
+- `context` (Object|Symbol): Either an object containing the context properties or `constants.DONT_CONTEXTIFY`
+
+**Returns:**
+- (Object): A new context object
+
+**Example:**
+```javascript
+const context = createContext({ customVar: 'value' });
+// Or with DONT_CONTEXTIFY
+const globalContext = createContext(constants.DONT_CONTEXTIFY);
+```
+
+#### Script
+
+A class that represents a script that can be executed in different contexts. Supports both synchronous and asynchronous code execution.
+
+**Constructor:**
+- `new Script(code: string)`
+
+**Methods:**
+- `runInContext(context: Object)`: Executes the script in a given context
+- `runInThisContext(options?: Object)`: Runs the script in the current global context
+- `runInNewContext(options?: Object)`: Runs the script in a new empty context
+
+**Properties:**
+- `code`: Gets the script's source code
+- `sourceMapURL`: Gets the source map URL if present
+
+**Example:**
+```javascript
+const script = new Script('console.log("Hello World")');
+await script.runInContext(context);
+```
+
+#### SourceTextModule
+
+A class that represents an ES module that can be dynamically executed.
+
+**Constructor:**
+- `new SourceTextModule(code: string, options?: { context?: Object })`
+
+**Methods:**
+- `evaluate()`: Evaluates the module in its context
+- `link()`: Links the module (currently a no-op)
+
+**Example:**
+```javascript
+const module = new SourceTextModule('export const x = 42;', { context });
+await module.evaluate();
+```
+
+### VMB Utilities
+
+The following utilities are not mirrored in the `node:vm` API, but can be used with it or `vmb`.
 
 #### InjectedConsole
 
-#### createRunScript
+A custom console implementation that captures output in isolated contexts.
 
-#### createRunSourceTextModule
+**Methods:**
+- `log(...output)`: Logs messages to the output buffer
+- `info(...output)`: Alias for log
+- `warn(...output)`: Alias for log
+- `error(...output)`: Logs messages to the error buffer
+- `get result()`: Gets the combined output, prioritizing errors if present
 
-#### wrapAsync
+**Example:**
+```javascript
+const console = new InjectedConsole();
+console.log('Hello', 'World');
+console.error('Oops');
+console.result; // Returns error message "Oops"
+```
+
+#### createRunScript({ Script, createContext, InjectedConsole })
+
+Creates a function that can run scripts in an isolated context.
+
+**Parameters:**
+- Object containing:
+  - `Script`: The Script class
+  - `createContext`: Context creation function
+  - `InjectedConsole`: Console implementation
+
+**Returns:**
+- `(code: string, globals?: Object) => Promise<string|undefined>`: Function to run scripts
+
+**Example:**
+```javascript
+const runScript = createRunScript({ Script, createContext, InjectedConsole });
+const result = await runScript('console.log("Hello World")', { customGlobal: 'value' });
+```
+
+#### createRunSourceTextModule({ SourceTextModule, createContext, InjectedConsole })
+
+Creates a function that can run ES modules in an isolated context.
+
+**Parameters:**
+- Object containing:
+  - `SourceTextModule`: The SourceTextModule class
+  - `createContext`: Context creation function
+  - `InjectedConsole`: Console implementation
+
+**Returns:**
+- `(code: string, globals?: Object) => Promise<string|undefined>`: Function to run modules
+
+**Example:**
+```javascript
+const runModule = createRunSourceTextModule({ SourceTextModule, createContext, InjectedConsole });
+const result = await runModule('export const x = 42; console.log(x);');
+```
+
+#### wrapAsync(code)
+
+Wraps code in an async IIFE (Immediately Invoked Function Expression) to enable top-level await.
+
+**Parameters:**
+- `code` (string): The code to wrap
+
+**Returns:**
+- (string): The wrapped code
+
+**Example:**
+```javascript
+const wrappedCode = wrapAsync('await fetch("https://api.example.com")');
+// Results in: (async ()=>{ await fetch("https://api.example.com") })();
+```
