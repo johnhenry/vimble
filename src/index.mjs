@@ -32,6 +32,12 @@ const trailer = `
 };
 `;
 
+
+const preview = (code, context) => {
+    const fullBody = fillHeader(...new Set([...EMPTY_KEYS, ...Object.keys(context)])) + code + trailer;
+    return   encodeURIComponent(fullBody);
+}
+
 /**
  * Executes JavaScript code in an isolated context with specified global variables
  * @async
@@ -45,12 +51,9 @@ const run = async (code, context) => {
         ...EMPTY_CONTEXT,
         ...context
     };
-    const fullBody = fillHeader(...new Set([...EMPTY_KEYS, ...Object.keys(newContext)])) + code + trailer;
     try {
-        const module = await import(
-            'data:application/javascript,' + encodeURIComponent(fullBody)
-        );
-        return await module.default(context);
+        const module = await import('data:application/javascript,'+preview(code, newContext));
+        return await module.default(newContext);
     } catch (error) {
         console.error(error);
         throw error;
@@ -72,5 +75,5 @@ const runWithInjectedConsole = async (code, context) => {
     });
     return localConsole.result;
 }
-export { run, runWithInjectedConsole, InjectedConsole };
+export { run, runWithInjectedConsole, InjectedConsole, preview };
 export default run;

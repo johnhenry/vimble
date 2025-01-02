@@ -108,7 +108,7 @@ import { runWithInjectedConsole as run } from 'vimble';
 // Capture console output
 const output = await run(`
   console.log('Hello');
-  console.error('World');
+  console.log('World');
 `);
 console.log(output); // outputs: "Hello\nWorld"
 ```
