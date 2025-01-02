@@ -1,0 +1,31 @@
+{
+  "name": "vmb",
+  "version": "0.0.0",
+  "main": "index.js",
+  "types": "types/vmb.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/vmb.d.ts",
+      "default": "./src/index.mjs"
+    },
+    "./inject-console": {
+      "types": "./types/vmb.d.ts",
+      "default": "./src/injected-console.mjs"
+    },
+    "./create-run": {
+      "types": "./types/vmb.d.ts",
+      "default": "./src/create-run.mjs"
+    },
+    "./wrap-async": {
+      "types": "./types/vmb.d.ts",
+      "default": "./src/wrap-async.mjs"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "demo:node": "node --experimental-vm-modules demo.node.mjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
