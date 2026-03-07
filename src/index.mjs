@@ -51,18 +51,47 @@ const preview = (code, context) => {
  * @throws {Error} If code execution fails
  */
 const run = async (code, context) => {
+  const { timeout, signal } = context ?? {};
   const newContext = {
     ...EMPTY_CONTEXT,
     ...context,
   };
-  try {
-    const module = await import(
-      "data:application/javascript," + preview(code, newContext)
-    );
-    return await module.default(newContext);
-  } catch (error) {
-    throw error;
+  // Remove meta-options from the execution context
+  delete newContext.timeout;
+  delete newContext.signal;
+
+  const module = await import(
+    "data:application/javascript," + preview(code, newContext)
+  );
+
+  if (timeout || signal) {
+    const ac = new AbortController();
+    const s = signal ?? ac.signal;
+    let timer;
+
+    const execution = module.default(newContext);
+    const timeoutPromise = new Promise((_, reject) => {
+      if (timeout) {
+        timer = setTimeout(() => {
+          ac.abort();
+          reject(new Error(`Execution timed out after ${timeout}ms`));
+        }, timeout);
+      }
+      if (signal) {
+        signal.addEventListener("abort", () => {
+          reject(new Error("Execution aborted"));
+        }, { once: true });
+      }
+    });
+
+    try {
+      return await Promise.race([execution, timeoutPromise]);
+    } finally {
+      clearTimeout(timer);
+    }
   }
+
+  return await module.default(newContext);
 };
 /**
  * Executes JavaScript code with a custom console implementation and returns the console output
