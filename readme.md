@@ -1,16 +1,18 @@
 # Vimble
 
+> Previously published on npm as `vimble` (unscoped). That name is no longer updated; use `@johnhenry/vimble`.
+
 Vimble allows you to execute code in an isolated context.
 
 ```javascript
-import * as vimble from 'https://cdn.jsdelivr.net/npm/vimble@0.0.0/src/index.mjs';
-// OR "https://ga.jspm.io/npm:vimble@0.0.0/src/index.mjs";
+import * as vimble from 'https://cdn.jsdelivr.net/npm/@johnhenry/vimble@0.1.0/src/index.mjs';
+// OR "https://ga.jspm.io/npm:@johnhenry/vimble@0.1.0/src/index.mjs";
 ```
 
 Or install via npm
 
 ```bash
-npm install vimble
+npm install @johnhenry/vimble
 ```
 
 ## Quick Start
@@ -18,7 +20,7 @@ npm install vimble
 Using `run` and `InjectedConsole`
 
 ```javascript
-import run,  { InjectedConsole } from 'vimble';
+import run,  { InjectedConsole } from '@johnhenry/vimble';
 const localConsole = new InjectedConsole();
 await run('console.log(1 + 2);', { console: localConsole });
 console.log(localConsole.result); // logs "3"
@@ -27,7 +29,7 @@ console.log(localConsole.result); // logs "3"
 Uing `runWithInjectedConsole`
 
 ```javascript
-import { runWithInjectedConsole as run } from 'vimble';
+import { runWithInjectedConsole as run } from '@johnhenry/vimble';
 console.log(await run('console.log(1 + 2);')); // logs "3"
 ```
 
@@ -45,7 +47,7 @@ Executes JavaScript code in an isolated context with specified global variables.
 
 **Example:**
 ```javascript
-import { run } from 'vimble';
+import { run } from '@johnhenry/vimble';
 // Access modified global variables
 const obj = { count: 0 };
 await run('obj.count += 1;', { obj });
@@ -55,7 +57,7 @@ console.log(obj.count); // outputs: 1
 Global objects must be specified in the context object
 
 ```javascript
-import { run } from 'vimble';
+import { run } from '@johnhenry/vimble';
 // Access modified global variables
 const obj = { text: "" };
 await run('await fetch("https://example.com").then((response) => response.text()).then((text) => obj.text = text);', { obj, fetch});
@@ -79,7 +81,7 @@ A custom console implementation that captures output and errors in isolated cont
 
 **Example:**
 ```javascript
-import { InjectedConsole } from 'vimble';
+import { InjectedConsole } from '@johnhenry/vimble';
 
 const console = new InjectedConsole();
 console.log('Hello');
@@ -103,7 +105,7 @@ Executes JavaScript code with a custom console implementation and returns the co
 
 **Example:**
 ```javascript
-import { runWithInjectedConsole as run } from 'vimble';
+import { runWithInjectedConsole as run } from '@johnhenry/vimble';
 
 // Capture console output
 const output = await run(`

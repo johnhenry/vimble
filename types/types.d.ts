@@ -11,10 +11,10 @@ export class InjectedConsole {
 
 export function run(code: string, globals?: object): Promise<void>;
 export function runWithInjectedConsole(code: string, globals?: object): Promise<string>;
-declare module "vimble" {
+declare module "@johnhenry/vimble" {
     export { run, runWithInjectedConsole, InjectedConsole};
 }
-declare module "vimble/injected-console" {
+declare module "@johnhenry/vimble/injected-console" {
     export { InjectedConsole };
     export default InjectedConsole;
 }
