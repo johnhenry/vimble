@@ -121,3 +121,30 @@ test('separate console instances have separate state', async (t) => {
   assert.equal(console1.output, 'message1');
   assert.equal(console2.output, 'message2');
 });
+test('run rejects after timeout', async () => {
+  await assert.rejects(
+    run('await new Promise((r) => setTimeout(r, 1000));', { setTimeout, timeout: 50 }),
+    /timed out after 50ms/
+  );
+});
+
+test('run resolves before timeout', async () => {
+  assert.equal(await run('return 7;', { timeout: 1000 }), 7);
+});
+
+test('run rejects when signal aborts', async () => {
+  const ac = new AbortController();
+  setTimeout(() => ac.abort(), 20);
+  await assert.rejects(
+    run('await new Promise((r) => setTimeout(r, 1000));', { setTimeout, signal: ac.signal }),
+    /Execution aborted/
+  );
+});
+
+test('run rejects immediately for an already-aborted signal', async () => {
+  await assert.rejects(run('return 1;', { signal: AbortSignal.abort() }), /Execution aborted/);
+});
+
+test('timeout and signal are not visible to executed code', async () => {
+  assert.equal(await run('return typeof timeout + typeof signal;', { timeout: 1000 }), 'undefinedundefined');
+});
