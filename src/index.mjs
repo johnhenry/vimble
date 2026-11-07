@@ -46,22 +46,54 @@ const preview = (code, context) => {
  * Executes JavaScript code in an isolated context with specified global variables
  * @async
  * @param {string} code - The JavaScript code to execute
- * @param {Object} context - Object containing global variables to inject into the execution context
+ * @param {Object} context - Object containing global variables to inject into the execution context.
+ *   The reserved keys `timeout` (ms) and `signal` (AbortSignal) are not injected; they make the
+ *   returned promise reject on timeout/abort.
  * @returns {Promise<any>} Result of the executed code
- * @throws {Error} If code execution fails
+ * @throws {Error} If code execution fails, times out, or is aborted
  */
 const run = async (code, context) => {
+  const { timeout, signal } = context ?? {};
   const newContext = {
     ...EMPTY_CONTEXT,
     ...context,
   };
-  try {
-    const module = await import(
-      "data:application/javascript," + preview(code, newContext)
-    );
+  // Remove meta-options from the execution context
+  delete newContext.timeout;
+  delete newContext.signal;
+
+  const module = await import(
+    "data:application/javascript," + preview(code, newContext)
+  );
+
+  if (!timeout && !signal) {
     return await module.default(newContext);
-  } catch (error) {
-    throw error;
+  }
+
+  // Note: this rejects the returned promise; it cannot interrupt synchronous
+  // code (e.g. an infinite loop) already running on the event loop.
+  if (signal?.aborted) {
+    throw new Error("Execution aborted");
+  }
+  let timer;
+  let onAbort;
+  const cancel = new Promise((_, reject) => {
+    if (timeout) {
+      timer = setTimeout(
+        () => reject(new Error(`Execution timed out after ${timeout}ms`)),
+        timeout,
+      );
+    }
+    if (signal) {
+      onAbort = () => reject(new Error("Execution aborted"));
+      signal.addEventListener("abort", onAbort, { once: true });
+    }
+  });
+  try {
+    return await Promise.race([module.default(newContext), cancel]);
+  } finally {
+    clearTimeout(timer);
+    if (onAbort) signal.removeEventListener("abort", onAbort);
   }
 };
 /**

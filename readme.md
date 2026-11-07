@@ -62,6 +62,21 @@ await run('await fetch("https://example.com").then((response) => response.text()
 console.log(obj.text); // outputs: 1
 ```
 
+#### Timeouts and cancellation
+
+Two reserved context keys control execution and are not injected into the code:
+
+- `timeout` (number, ms): reject with `Execution timed out after <ms>ms` if the code has not settled in time
+- `signal` (AbortSignal): reject with `Execution aborted` when the signal aborts
+
+```javascript
+import { run } from 'vimble';
+await run('await new Promise((r) => setTimeout(r, 5000));', { setTimeout, timeout: 100 });
+// rejects: Execution timed out after 100ms
+```
+
+These reject the returned promise; they cannot interrupt synchronous code (such as an infinite loop) that is already running.
+
 ### InjectedConsole
 
 A custom console implementation that captures output and errors in isolated contexts.
